@@ -8,8 +8,9 @@ import threading
 from dataclasses import dataclass
 from typing import Iterable, List, Optional
 
-import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer
+
+from src.temux_lite_50m import ensure_model_on_device
 
 DEFAULT_MODEL_ID = "TheTemuxFamily/Temux-Lite-50M"
 DEFAULT_SYSTEM_PROMPT = "You are Temux, a helpful hacker CLI assistant running inside Termux."
@@ -92,9 +93,7 @@ def create_parser() -> argparse.ArgumentParser:
 def load_model_components(model_id: str, device: Optional[str] = None):
     tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
     model = AutoModelForCausalLM.from_pretrained(model_id, trust_remote_code=True)
-    if device is None:
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-    model.to(device)
+    ensure_model_on_device(model, device)
     return tokenizer, model
 
 

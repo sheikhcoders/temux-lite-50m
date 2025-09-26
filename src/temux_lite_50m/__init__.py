@@ -10,6 +10,7 @@ from .evaluation import (
 )
 from .modeling_temuxlite import TemuxLiteForCausalLM, TemuxLiteModel
 from .tokenization_temuxlite import TemuxLiteTokenizer
+from .utils import ensure_model_on_device
 
 __all__ = [
     "TemuxLiteConfig",
@@ -21,4 +22,5 @@ __all__ = [
     "EvaluationResult",
     "DEFAULT_CASES",
     "format_report",
+    "ensure_model_on_device",
 ]

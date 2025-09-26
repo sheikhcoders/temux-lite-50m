@@ -125,6 +125,12 @@ class TemuxLiteModel(PreTrainedModel):
         input_ids: torch.LongTensor,
         attention_mask: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
+        if input_ids.device.type == "cpu" and self.embed_tokens.weight.dtype == torch.float16:
+            # Float16 kernels are unavailable on CPU; transparently promote the
+            # parameters the first time a CPU batch arrives so inference keeps
+            # working even when the config defaults to half precision.
+            self.float()
+
         batch_size, seq_len = input_ids.shape
         positions = torch.arange(seq_len, device=input_ids.device).unsqueeze(0)
         hidden_states = self.embed_tokens(input_ids) + self.embed_positions(positions)

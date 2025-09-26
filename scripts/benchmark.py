@@ -14,6 +14,7 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from temux_lite_50m.evaluation import DEFAULT_CASES, EvaluationCase, TemuxEvaluator
+from temux_lite_50m import ensure_model_on_device
 
 
 def parse_args() -> argparse.Namespace:
@@ -77,8 +78,7 @@ def main() -> None:
     args = parse_args()
     tokenizer = AutoTokenizer.from_pretrained(args.model, trust_remote_code=True)
     model = AutoModelForCausalLM.from_pretrained(args.model, trust_remote_code=True)
-    device = args.device or ("cuda" if torch.cuda.is_available() else "cpu")
-    model.to(device)
+    ensure_model_on_device(model, args.device)
     model.eval()
 
     generate_fn, tokenize_fn = make_generate_fn(model, tokenizer, args)

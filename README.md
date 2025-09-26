@@ -81,6 +81,9 @@ parameters with `--max-new-tokens`, `--temperature`, and `--top-p`. Add
 `--no-stream` when you prefer to receive the full response in a single print
 instead of token-by-token streaming.
 
+All tooling automatically promotes the model to float32 when you run on CPU so
+half-precision checkpoints remain usable in lightweight environments.
+
 ## Python usage
 ```python
 from transformers import AutoModelForCausalLM, AutoTokenizer

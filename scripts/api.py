@@ -14,6 +14,8 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer
 
+from src.temux_lite_50m import ensure_model_on_device
+
 LOGGER = logging.getLogger(__name__)
 
 DEFAULT_MODEL_ID = "TheTemuxFamily/Temux-Lite-50M"
@@ -27,26 +29,14 @@ class GenerateRequest(BaseModel):
     temperature: float = 0.7
     top_p: float = 0.9
     stream: bool = True
-
-
-def _select_device(preferred: Optional[str] = None) -> str:
-    if preferred:
-        return preferred
-    if torch.cuda.is_available():
-        return "cuda"
-    if torch.backends.mps.is_available():  # type: ignore[attr-defined]
-        return "mps"
-    return "cpu"
-
-
 @lru_cache(maxsize=None)
 def _load_model(model_id: str, device: Optional[str] = None):
-    resolved_device = _select_device(device)
-    LOGGER.info("Loading model %s on %s", model_id, resolved_device)
+    LOGGER.info("Loading model %s", model_id)
     tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
     model = AutoModelForCausalLM.from_pretrained(model_id, trust_remote_code=True)
-    model.to(resolved_device)
+    resolved_device = ensure_model_on_device(model, device)
     model.eval()
+    LOGGER.info("Loaded %s on %s", model_id, resolved_device)
     return tokenizer, model, resolved_device
 
 

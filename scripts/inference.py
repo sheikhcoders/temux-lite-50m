@@ -16,6 +16,8 @@ from transformers import (
     TextIteratorStreamer,
 )
 
+from src.temux_lite_50m import ensure_model_on_device
+
 DEFAULT_MODEL = "TheTemuxFamily/Temux-Lite-50M"
 
 
@@ -75,8 +77,8 @@ def main(argv: Optional[list[str]] = None) -> None:
 
     tokenizer = AutoTokenizer.from_pretrained(args.model, trust_remote_code=True)
     model = AutoModelForCausalLM.from_pretrained(args.model, trust_remote_code=True)
-    device = args.device or ("cuda" if torch.cuda.is_available() else "cpu")
-    model.to(device).eval()
+    device = ensure_model_on_device(model, args.device)
+    model.eval()
 
     for token in stream_generate(
         model,
