@@ -3,3 +3,6 @@ transformers>=4.41
 safetensors>=0.4
 huggingface_hub>=0.23
 datasets>=2.18
+fastapi>=0.111
+uvicorn[standard]>=0.23
+psutil>=5.9

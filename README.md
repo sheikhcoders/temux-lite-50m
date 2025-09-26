@@ -69,9 +69,43 @@ print(tokenizer.decode(outputs[0], skip_special_tokens=True))
 - `scripts/train.py`: Hugging Face Trainer loop for continued pre-training or
   instruction tuning. Accepts local datasets or Hub datasets.
 - `scripts/evaluate.py`: wraps the evaluation harness and prints a report.
+- `scripts/api.py`: FastAPI microservice with a `/generate` endpoint for HTTP
+  integrations.
+- `scripts/benchmark.py`: latency and memory probe tailored for Termux/Android
+  devices.
 - `scripts/push_to_hub.py`: uploads the repository safely without including
   large binary artifacts.
 - `scripts/convert_to_safetensors.py`: helper for migrating legacy checkpoints.
+
+## Inference API
+Spin up a lightweight HTTP service for the model:
+
+```bash
+uvicorn scripts.api:app --host 0.0.0.0 --port 8000
+```
+
+Stream tokens back to the terminal:
+
+```bash
+curl -N -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "Explain: ls -la", "stream": true}' \
+  http://localhost:8000/generate
+```
+
+Set `"stream": false` to receive a JSON payload with `output` and `latency_ms`
+fields for automation or benchmarking harnesses.
+
+## Benchmarking toolkit
+Measure end-to-end latency, throughput, and memory usage:
+
+```bash
+python scripts/benchmark.py --model TheTemuxFamily/Temux-Lite-50M --repetitions 5
+```
+
+Use `--cases custom.json` to benchmark custom workloads. The script reports the
+mean tokens-per-second across runs plus the observed peak RSS in megabytes so
+you can optimise for low-memory Android devices.
 
 ## Evaluation harness
 The harness lives in `src/temux_lite_50m/evaluation.py` and focuses on hacker
@@ -120,6 +154,8 @@ on-device optimisations, or additional evaluation scenarios.
   `HUGGINGFACE_HUB_TOKEN`.
 - Rotate any tokens that may have leaked in terminals or logs.
 - Use scoped tokens (read/write) with the minimum privileges required.
+- Run `git lfs install` before pushing checkpoints so large weights stay out of
+  Git history.
 
 ## License
 Temux-Lite-50M is distributed under the Apache License 2.0. See
