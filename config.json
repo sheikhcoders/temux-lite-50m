@@ -19,5 +19,9 @@
   "hidden_act": "gelu",
   "rope_theta": 10000.0,
   "torch_dtype": "float16",
-  "tie_word_embeddings": true
+  "tie_word_embeddings": true,
+  "architectures": [
+    "TemuxLiteForCausalLM"
+  ],
+  "tokenizer_class": "TemuxLiteTokenizer"
 }

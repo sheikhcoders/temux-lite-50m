@@ -51,8 +51,9 @@ class Attention(nn.Module):
         batch, seq_len, hidden = x.size()
         qkv = self.qkv(x).view(batch, seq_len, 3, self.num_heads, self.head_dim)
         q, k, v = qkv.unbind(dim=2)
-        q = self.rotary(q)
-        k = self.rotary(k)
+        q = self.rotary(q).transpose(1, 2)  # (batch, heads, seq, dim)
+        k = self.rotary(k).transpose(1, 2)
+        v = v.transpose(1, 2)
 
         attn_scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(self.head_dim)
         if attn_mask is not None:

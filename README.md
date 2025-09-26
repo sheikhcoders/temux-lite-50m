@@ -64,18 +64,23 @@ outputs = model.generate(**inputs, max_new_tokens=64)
 print(tokenizer.decode(outputs[0], skip_special_tokens=True))
 ```
 
-## Scripts overview
-- `scripts/inference.py`: quick smoke test for local weights.
-- `scripts/train.py`: Hugging Face Trainer loop for continued pre-training or
+## Developer kit overview
+- `temux.py` — interactive CLI with chat, command, completion, and syscall
+  helpers that stream output token-by-token.
+- `scripts/inference.py` — single-file inference helper with argument parsing
+  that mirrors the CLI defaults for quick smoke tests or demos.
+- `scripts/train.py` — Hugging Face Trainer loop for continued pre-training or
   instruction tuning. Accepts local datasets or Hub datasets.
-- `scripts/evaluate.py`: wraps the evaluation harness and prints a report.
-- `scripts/api.py`: FastAPI microservice with a `/generate` endpoint for HTTP
-  integrations.
-- `scripts/benchmark.py`: latency and memory probe tailored for Termux/Android
-  devices.
-- `scripts/push_to_hub.py`: uploads the repository safely without including
-  large binary artifacts.
-- `scripts/convert_to_safetensors.py`: helper for migrating legacy checkpoints.
+- `scripts/evaluate.py` — wraps the evaluation harness and prints an HTML-style
+  report you can paste into model cards.
+- `scripts/api.py` — FastAPI microservice with a `/generate` endpoint for HTTP
+  integrations and VS Code extension backends.
+- `scripts/benchmark.py` — latency and memory probe tailored for
+  Termux/Android devices with CSV export.
+- `scripts/push_to_hub.py` — guarded upload utility that keeps large artifacts
+  out of git history and enforces token hygiene.
+- `scripts/convert_to_safetensors.py` — helper for migrating legacy
+  checkpoints.
 
 ## Inference API
 Spin up a lightweight HTTP service for the model:
@@ -118,6 +123,38 @@ python scripts/evaluate.py --model TheTemuxFamily/Temux-Lite-50M
 Results include per-case pass/fail, average latency, and tokens-per-second to
 simplify benchmarking on Android/Termux devices. Custom scenarios can be loaded
 by passing a JSON file through `--cases`.
+
+## Training and fine-tuning
+The provided `scripts/train.py` accepts either local datasets or public Hugging
+Face Hub datasets. Example (continue pre-training on a JSONL file):
+
+```bash
+python scripts/train.py \
+  --model TheTemuxFamily/Temux-Lite-50M \
+  --dataset /path/to/data.jsonl \
+  --output-dir outputs/temux-lite-continue \
+  --per-device-train-batch-size 8 \
+  --learning-rate 3e-5 \
+  --num-train-epochs 3
+```
+
+Swap `--dataset` for a Hub reference such as `--dataset thetemuxfamily/cmdset`
+to stream data remotely. The script saves checkpoints, TensorBoard logs, and a
+`trainer_state.json` so experiments can resume mid-run.
+
+## Tokenizer customization
+`temuxlite_vocab.json` and `tokenizer_config.json` implement a lightweight
+Byte-Level BPE tokenizer geared toward shell commands and code. To regenerate
+the vocabulary for a new corpus, edit `tokenization_temuxlite.py` (which relies
+only on the standard library) and ship the resulting files alongside the
+weights. Downstream projects can also swap in a different tokenizer by pointing
+`config.json`'s `auto_map` to the desired tokenizer implementation.
+
+## Roadmap
+- [ ] Convert placeholder rotary embedding into a full RoPE implementation.
+- [ ] Publish quantized checkpoints for resource-constrained devices.
+- [ ] Release a VS Code extension using `scripts/api.py` as the backend.
+- [ ] Expand the evaluation harness with HumanEval/MBPP adapters.
 
 ## Repository layout
 ```
