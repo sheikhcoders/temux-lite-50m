@@ -12,15 +12,32 @@ from .configuration_temuxlite import TemuxLiteConfig
 
 
 class Rotary(nn.Module):
-    """Placeholder rotary position embedding (no-op)."""
+    """Applies rotary position embeddings to query/key tensors."""
 
     def __init__(self, dim: int, theta: float = 10000.0) -> None:
+        if dim % 2 != 0:
+            raise ValueError("Rotary dimension must be even to apply complex rotation pairs.")
         super().__init__()
-        self.dim = dim
-        self.theta = theta
+        inv_freq = 1.0 / (theta ** (torch.arange(0, dim, 2, dtype=torch.float32) / dim))
+        self.register_buffer("inv_freq", inv_freq, persistent=False)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:  # pragma: no cover - placeholder
-        return x
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Rotate last-dimension pairs according to positional frequency."""
+
+        seq_len = x.size(1)
+        device = x.device
+        dtype = x.dtype
+
+        positions = torch.arange(seq_len, device=device, dtype=self.inv_freq.dtype)
+        angles = torch.outer(positions, self.inv_freq)
+        sin, cos = angles.sin(), angles.cos()
+        sin = sin.to(dtype)[None, :, None, :]
+        cos = cos.to(dtype)[None, :, None, :]
+
+        x_even = x[..., ::2]
+        x_odd = x[..., 1::2]
+        rotated = torch.stack((x_even * cos - x_odd * sin, x_even * sin + x_odd * cos), dim=-1)
+        return rotated.flatten(-2)
 
 
 class MLP(nn.Module):
@@ -57,7 +74,12 @@ class Attention(nn.Module):
 
         attn_scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(self.head_dim)
         if attn_mask is not None:
-            attn_scores = attn_scores.masked_fill(attn_mask, float("-inf"))
+            if attn_mask.dtype == torch.bool:
+                attn_scores = attn_scores.masked_fill(
+                    attn_mask, torch.finfo(attn_scores.dtype).min
+                )
+            else:
+                attn_scores = attn_scores + attn_mask
         attn_weights = attn_scores.softmax(dim=-1)
         context = torch.matmul(attn_weights, v)
         context = context.transpose(1, 2).contiguous().view(batch, seq_len, hidden)
@@ -149,9 +171,10 @@ class TemuxLiteForCausalLM(PreTrainedModel):
     def prepare_inputs_for_generation(
         self,
         input_ids: torch.LongTensor,
+        attention_mask: Optional[torch.LongTensor] = None,
         **kwargs,
     ):
-        return {"input_ids": input_ids}
+        return {"input_ids": input_ids, "attention_mask": attention_mask}
 
 
 TemuxLiteModel.register_for_auto_class()
