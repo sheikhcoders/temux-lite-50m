@@ -24,6 +24,12 @@ def test_create_parser_modes():
     assert not args.chat
 
 
+def test_no_stream_flag():
+    parser = temux.create_parser()
+    args = parser.parse_args(["--complete", "print('hi')", "--no-stream"])
+    assert args.no_stream is True
+
+
 def test_build_chat_prompt_roundtrip():
     history = [temux.ConversationTurn("user", "Hello"), temux.ConversationTurn("assistant", "Hi")]
     prompt = temux.build_chat_prompt(history, "System message")

@@ -48,7 +48,9 @@ python temux.py --syscall "open"
 ```
 
 Use `--prompt` to override the generated prompt template, and tune sampling
-parameters with `--max-new-tokens`, `--temperature`, and `--top-p`.
+parameters with `--max-new-tokens`, `--temperature`, and `--top-p`. Add
+`--no-stream` when you prefer to receive the full response in a single print
+instead of token-by-token streaming.
 
 ## Python usage
 ```python
@@ -151,10 +153,10 @@ weights. Downstream projects can also swap in a different tokenizer by pointing
 `config.json`'s `auto_map` to the desired tokenizer implementation.
 
 ## Roadmap
-- [ ] Convert placeholder rotary embedding into a full RoPE implementation.
 - [ ] Publish quantized checkpoints for resource-constrained devices.
 - [ ] Release a VS Code extension using `scripts/api.py` as the backend.
 - [ ] Expand the evaluation harness with HumanEval/MBPP adapters.
+- [ ] Add a caching layer to `temux.py` so repeated prompts reuse loaded weights.
 
 ## Repository layout
 ```
