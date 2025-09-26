@@ -49,10 +49,10 @@ def build_ignore_patterns(include_weights: bool, extra: Iterable[str]) -> list[s
 
 def main() -> None:
     args = parse_args()
-    token = os.getenv("HUGGINGFACE_HUB_TOKEN")
+    token = os.getenv("HUGGINGFACE_HUB_TOKEN") or os.getenv("HF_TOKEN")
     if not token:
         raise EnvironmentError(
-            "Set the HUGGINGFACE_HUB_TOKEN environment variable before running this script."
+            "Set the HUGGINGFACE_HUB_TOKEN or HF_TOKEN environment variable before running this script."
         )
 
     local_dir = Path(args.local_dir).resolve()

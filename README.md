@@ -26,6 +26,35 @@ The scripts assume `torch`, `transformers`, and `datasets` are available. When
 running inside lightweight environments such as Termux, consider installing the
 CUDA/Metal builds that match your device for best performance.
 
+### Local testing
+Run the automated checks before committing to ensure the Transformers scaffolding
+and CLI stay in sync:
+
+```bash
+pytest -q
+```
+
+The default tests shrink the configuration and run a short forward pass so they
+finish quickly even on CPU-only machines.
+
+### Continuous integration & automated Hub sync
+GitHub Actions (`.github/workflows/ci.yml`) mirrors the local workflow. Every
+push or pull request installs the dependencies, runs `pytest -q`, and surfaces
+failures in the Checks tab. When commits land on `main`, a follow-up job invokes
+`scripts/push_to_hub.py` to sync the repository contents to
+`huggingface.co/TheTemuxFamily/Temux-Lite-50M` using the `HF_TOKEN` repository
+secret.
+
+To enable the sync:
+
+1. Create a Hugging Face access token with *write* scope.
+2. Add it to the GitHub repository secrets as `HF_TOKEN`.
+3. Optionally restrict the Actions environment or reviewers to gate production
+   uploads.
+
+The upload step ignores `.git/`, test fixtures, and `.github/` metadata so the
+Hub stays focused on the actual model assets.
+
 ## CLI quickstart
 The CLI loads Temux models directly from the Hugging Face Hub and streams
 responses to keep the Termux experience snappy:
