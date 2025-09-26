@@ -6,6 +6,7 @@ huggingface_hub>=0.23
 
 # Optional tooling
 datasets>=2.18
+requests>=2.31
 fastapi>=0.111
 uvicorn[standard]>=0.23
 psutil>=5.9

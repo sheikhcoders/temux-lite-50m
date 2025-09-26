@@ -156,22 +156,66 @@ simplify benchmarking on Android/Termux devices. Custom scenarios can be loaded
 by passing a JSON file through `--cases`.
 
 ## Training and fine-tuning
-The provided `scripts/train.py` accepts either local datasets or public Hugging
-Face Hub datasets. Example (continue pre-training on a JSONL file):
+The provided `scripts/train.py` accepts either local datasets or public
+Hugging Face Hub datasets and now supports column-aware preprocessing so you
+can pair questions with solutions or replay chat transcripts without editing
+your source files. Example (continue pre-training on a JSONL file that already
+contains a `text` column):
 
 ```bash
 python scripts/train.py \
+  /path/to/data.jsonl \
   --model TheTemuxFamily/Temux-Lite-50M \
-  --dataset /path/to/data.jsonl \
-  --output-dir outputs/temux-lite-continue \
-  --per-device-train-batch-size 8 \
+  --output ./outputs/temux-lite-continue \
+  --batch-size 8 \
   --learning-rate 3e-5 \
-  --num-train-epochs 3
+  --epochs 3 \
+  --text-column text
 ```
 
-Swap `--dataset` for a Hub reference such as `--dataset thetemuxfamily/cmdset`
-to stream data remotely. The script saves checkpoints, TensorBoard logs, and a
-`trainer_state.json` so experiments can resume mid-run.
+Swap the positional dataset argument for a Hub reference such as
+`GetSoloTech/Code-Reasoning` to stream curated competitive-programming data.
+The script now understands this dataset out of the box—questions are combined
+with their high-quality `r1_generation` solutions, and you can select the
+Python or C++ split via `--split python` or `--split cpp`. The same logic works
+for any dataset by specifying `--prompt-column` and `--response-column` or a
+`--conversation-column` for chat logs. Checkpoints, TensorBoard logs, and
+`trainer_state.json` are saved so experiments can resume mid-run.
+
+### Inspecting dataset slices from the command line
+
+`scripts/dataset_info.py` wraps the Hugging Face datasets server endpoints used
+throughout our workflow. It replicates the following cURL commands so you can
+script dataset checks without leaving Python:
+
+```bash
+# Fetch the first 100 rows of the Python split
+python scripts/dataset_info.py GetSoloTech/Code-Reasoning --split python --pretty > sample_rows.json
+
+# List available splits
+python scripts/dataset_info.py GetSoloTech/Code-Reasoning --pretty | jq '.splits'
+
+# Include parquet file metadata for reproducible training pipelines
+python scripts/dataset_info.py GetSoloTech/Code-Reasoning --show-parquet --pretty
+```
+
+Under the hood this helper hits the same endpoints you can query manually:
+
+```bash
+curl -X GET "https://datasets-server.huggingface.co/rows?dataset=GetSoloTech%2FCode-Reasoning&config=default&split=python&offset=0&length=100"
+curl -X GET "https://datasets-server.huggingface.co/splits?dataset=GetSoloTech%2FCode-Reasoning"
+curl -X GET "https://huggingface.co/api/datasets/GetSoloTech/Code-Reasoning/parquet/default/python"
+```
+
+These routes provide the sample rows used for prompt engineering, the list of
+available splits (`python`, `cpp`), and the backing parquet shards so you can
+mirror the data inside reproducible data lakes. The dataset itself—**Code-
+Reasoning: Quality Filtered Dataset**—is a curated subset of
+`nvidia/OpenCodeReasoning-2` with strict filtering (correct `judgement`,
+`pass_rate >= 0.85`) and reconstructed problem statements spanning TACO, APPS,
+CodeContests, and Codeforces. Each record exposes the question, a
+reasoned-through `r1_generation`, the original dataset identifier, and a
+structured `messages` conversation for instruction tuning.
 
 ## Tokenizer customization
 `temuxlite_vocab.json` and `tokenizer_config.json` implement a lightweight
