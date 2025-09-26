@@ -5,5 +5,11 @@
   "eos_token": "</s>",
   "unk_token": "<unk>",
   "pad_token": "<pad>",
-  "clean_up_tokenization_spaces": true
+  "clean_up_tokenization_spaces": true,
+  "auto_map": {
+    "AutoTokenizer": [
+      "tokenization_temuxlite.TemuxLiteTokenizer",
+      null
+    ]
+  }
 }

@@ -29,3 +29,16 @@ class TemuxLiteConfig(PretrainedConfig):
         self.hidden_act = hidden_act
         self.layer_norm_eps = layer_norm_eps
         self.rope_theta = rope_theta
+        self.tokenizer_class = "TemuxLiteTokenizer"
+        self.auto_map = {
+            "AutoConfig": "configuration_temuxlite.TemuxLiteConfig",
+            "AutoModel": "modeling_temuxlite.TemuxLiteModel",
+            "AutoModelForCausalLM": "modeling_temuxlite.TemuxLiteForCausalLM",
+            "AutoTokenizer": [
+                "tokenization_temuxlite.TemuxLiteTokenizer",
+                None,
+            ],
+        }
+
+
+TemuxLiteConfig.register_for_auto_class()

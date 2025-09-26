@@ -151,3 +151,7 @@ class TemuxLiteForCausalLM(PreTrainedModel):
         **kwargs,
     ):
         return {"input_ids": input_ids}
+
+
+TemuxLiteModel.register_for_auto_class()
+TemuxLiteForCausalLM.register_for_auto_class("AutoModelForCausalLM")

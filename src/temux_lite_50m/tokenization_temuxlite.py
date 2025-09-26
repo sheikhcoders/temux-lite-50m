@@ -121,4 +121,7 @@ class TemuxLiteTokenizer(PreTrainedTokenizer):
         return (vocab_path,)
 
 
+TemuxLiteTokenizer.register_for_auto_class()
+
+
 __all__ = ["TemuxLiteTokenizer"]

@@ -1,9 +1,13 @@
 {
   "model_type": "temuxlite",
   "auto_map": {
-    "AutoConfig": "temux_lite_50m.configuration_temuxlite.TemuxLiteConfig",
-    "AutoModel": "temux_lite_50m.modeling_temuxlite.TemuxLiteModel",
-    "AutoModelForCausalLM": "temux_lite_50m.modeling_temuxlite.TemuxLiteForCausalLM"
+    "AutoConfig": "configuration_temuxlite.TemuxLiteConfig",
+    "AutoModel": "modeling_temuxlite.TemuxLiteModel",
+    "AutoModelForCausalLM": "modeling_temuxlite.TemuxLiteForCausalLM",
+    "AutoTokenizer": [
+      "tokenization_temuxlite.TemuxLiteTokenizer",
+      null
+    ]
   },
   "vocab_size": 32000,
   "hidden_size": 512,

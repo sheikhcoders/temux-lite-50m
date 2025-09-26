@@ -91,8 +91,10 @@ DEFAULT_CASES: List[EvaluationCase] = [
     ),
     EvaluationCase(
         name="Python completion",
-        prompt="Complete a Python function that returns the square of a number:
-        def square(x):",
+        prompt=(
+            "Complete a Python function that returns the square of a number:\n\n"
+            "def square(x):"
+        ),
         expected_keywords=("return", "x", "*", "x"),
         mode="complete",
     ),
