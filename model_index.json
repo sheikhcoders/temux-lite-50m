@@ -1,0 +1,5 @@
+{
+  "library_name": "transformers",
+  "tags": ["text-generation", "causal-lm", "temux", "small-language-model"],
+  "pipeline_tag": "text-generation"
+}
