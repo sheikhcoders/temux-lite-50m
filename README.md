@@ -19,12 +19,16 @@ share the same developer experience with different weights and vocabularies.
 
 ## Installation
 ```bash
+python -m pip install --upgrade pip
+# Install the lightweight CPU build of PyTorch first to avoid pulling CUDA wheels
+pip install --index-url https://download.pytorch.org/whl/cpu torch==2.2.2+cpu
 python -m pip install -r requirements.txt
 ```
 
 The scripts assume `torch`, `transformers`, and `datasets` are available. When
-running inside lightweight environments such as Termux, consider installing the
-CUDA/Metal builds that match your device for best performance.
+running on GPUs you can swap the `+cpu` wheel for the appropriate CUDA build;
+on Android/Termux this keeps the environment lean while still enabling the
+tests and CLI to execute locally.
 
 ### Local testing
 Run the automated checks before committing to ensure the Transformers scaffolding
